@@ -1,1 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Systematic Administration Chatbot</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #e5e5e5;
+        }
+        #chat_container {
+            width: 400px;
+            max-width: 90%;
+            background: white;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            border-radius: 16px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        #chat_window {
+            flex: 1;
+            padding: 16px;
+            overflow-y: auto;
+            border-bottom: 1px solid #ddd;
+            background-color: #f9f9f9;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .message {
+            padding: 12px 16px;
+            border-radius: 18px;
+            font-size: 14px;
+            line-height: 1.5;
+            max-width: 75%;
+            word-wrap: break-word;
+        }
+        .user {
+            background-color: #0078d4;
+            color: white;
+            align-self: flex-end;
+        }
+        .bot {
+            background-color: #e1e1e1;
+            color: #333;
+            align-self: flex-start;
+        }
+        #user_input_container {
+            display: flex;
+            padding: 12px;
+            background-color: #ffffff;
+            border-top: 1px solid #ddd;
+        }
+        #user_input {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 25px;
+            outline: none;
+            font-size: 14px;
+        }
+        #user_input:focus {
+            border-color: #0078d4;
+        }
+        #send_button {
+            background-color: #0078d4;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-left: 8px;
+        }
+        #send_button:hover {
+            background-color: #005bb5;
+        }
+    </style>
+</head>
+<body>
+    <div id="chat_container">
+        <div id="chat_window"></div>
+        <div id="user_input_container">
+            <input id="user_input" type="text" placeholder="Type a message..." />
+            <button id="send_button" onclick="submitQuestion()">Send</button>
+        </div>
+    </div>
 
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const inputField = document.getElementById("user_input");
+
+            // Trigger submitQuestion on Enter key press
+            inputField.addEventListener("keypress", (event) => {
+                if (event.key === "Enter") {
+                    submitQuestion();
+                    event.preventDefault(); // Prevent default form submission behavior
+                }
+            });
+        });
+
+        async function submitQuestion() {
+            const userInput = document.getElementById("user_input").value;
+            const chatWindow = document.getElementById("chat_window");
+
+            if (!userInput.trim()) return;
+
+            // Append user message
+            const userMessage = document.createElement("div");
+            userMessage.classList.add("message", "user");
+            userMessage.textContent = userInput;
+            chatWindow.appendChild(userMessage);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+
+            // Clear the input field after sending the message
+            document.getElementById("user_input").value = '';
+
+            // Show bot is typing
+            const botTyping = document.createElement("div");
+            botTyping.classList.add("message", "bot");
+            botTyping.textContent = "Typing...";
+            chatWindow.appendChild(botTyping);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+
+            try {
+                const response = await fetch("/chat", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ message: userInput }),
+                });
+
+                const data = await response.json();
+                botTyping.textContent = data.response;
+            } catch (error) {
+                botTyping.textContent = "An error occurred. Please try again.";
+            }
+        }
+    </script>
+</body>
+</html>
